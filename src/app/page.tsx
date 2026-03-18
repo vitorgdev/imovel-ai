@@ -26,6 +26,8 @@ export interface AnalysisData {
 }
 
 interface Usage {
+  plan: string;
+  planName: string;
   used: number;
   limit: number;
   remaining: number;
@@ -120,9 +122,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
-      <main>
+      <main className="flex-1">
         <HeroSection
           url={url}
           setUrl={setUrl}
@@ -151,7 +153,12 @@ export default function Home() {
           <div className="mx-auto max-w-2xl px-6 pb-8">
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-center">
               <p className="text-sm text-amber-800">
-                Você usou todas as suas <strong>{usage.limit} análises gratuitas</strong>. Em breve teremos planos pagos!
+                Você usou todas as suas <strong>{usage.limit} análises do plano {usage.planName}</strong>.{" "}
+              {usage.plan === "free" ? (
+                <Link href="/precos" className="font-semibold underline">Faça upgrade!</Link>
+              ) : (
+                <Link href="/dashboard" className="font-semibold underline">Gerencie seu plano.</Link>
+              )}
               </p>
             </div>
           </div>

@@ -21,12 +21,9 @@ export function Header() {
         </a>
         <div className="flex items-center gap-6">
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
-            <a href="#" className="transition-colors hover:text-foreground">
-              Como funciona
-            </a>
-            <a href="#" className="transition-colors hover:text-foreground">
+            <Link href="/precos" className="transition-colors hover:text-foreground">
               Preços
-            </a>
+            </Link>
           </nav>
           <Show when="signed-out">
             <div className="flex items-center gap-3">
@@ -45,7 +42,15 @@ export function Header() {
             </div>
           </Show>
           <Show when="signed-in">
-            <UserButton />
+            <div className="flex items-center gap-4">
+              <Link
+                href="/dashboard"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Dashboard
+              </Link>
+              <UserButton />
+            </div>
           </Show>
         </div>
       </div>

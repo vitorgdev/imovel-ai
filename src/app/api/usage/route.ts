@@ -1,21 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
-import { getDb } from "@/lib/mongodb";
-
-const FREE_LIMIT = 3;
+import { getUserUsage } from "@/lib/user";
 
 export async function GET() {
   const { userId } = await auth();
 
   if (!userId) {
-    return Response.json({ used: 0, limit: FREE_LIMIT, remaining: FREE_LIMIT });
+    return Response.json({ plan: "free", planName: "Free", used: 0, limit: 3, remaining: 3 });
   }
 
-  const db = await getDb();
-  const used = await db.collection("analyses").countDocuments({ userId });
-
-  return Response.json({
-    used,
-    limit: FREE_LIMIT,
-    remaining: Math.max(0, FREE_LIMIT - used),
-  });
+  const usage = await getUserUsage(userId);
+  return Response.json(usage);
 }

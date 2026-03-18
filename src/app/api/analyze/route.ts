@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { scrapeProperty } from "@/lib/scraper";
 import { analyzeProperty, analyzeFromText } from "@/lib/analyzer";
 import { getDb } from "@/lib/mongodb";
+import { getUserUsage } from "@/lib/user";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -25,16 +26,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check free tier limit
-    const db = await getDb();
-    const usageCount = await db
-      .collection("analyses")
-      .countDocuments({ userId });
-
-    const FREE_LIMIT = 3;
-    if (usageCount >= FREE_LIMIT) {
+    // Check plan limit
+    const usage = await getUserUsage(userId);
+    if (usage.remaining <= 0) {
       return Response.json(
-        { error: "Você atingiu o limite de 3 análises gratuitas. Em breve teremos planos pagos!" },
+        {
+          error: `Você atingiu o limite de ${usage.limit} análises do plano ${usage.planName}. Faça upgrade para continuar!`,
+        },
         { status: 403, headers: CORS_HEADERS }
       );
     }
