@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import Link from "next/link";
 import { Header } from "@/components/header";
 import { HeroSection } from "@/components/hero-section";
 import { AnalysisResult } from "@/components/analysis-result";
@@ -23,14 +25,33 @@ export interface AnalysisData {
   cons: string[];
 }
 
+interface Usage {
+  used: number;
+  limit: number;
+  remaining: number;
+}
+
 export default function Home() {
+  const { isSignedIn } = useUser();
   const [url, setUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [steps, setSteps] = useState<string[]>([]);
+  const [usage, setUsage] = useState<Usage | null>(null);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      fetch("/api/usage")
+        .then((r) => r.json())
+        .then(setUsage)
+        .catch(() => {});
+    }
+  }, [isSignedIn, result]);
 
   const streamAnalysis = async (body: Record<string, string>) => {
+    if (!isSignedIn) return;
+
     setIsAnalyzing(true);
     setResult(null);
     setError(null);
@@ -109,6 +130,41 @@ export default function Home() {
           onAnalyzeText={handleAnalyzeText}
           isAnalyzing={isAnalyzing}
         />
+
+        {!isSignedIn && (
+          <div className="mx-auto max-w-2xl px-6 pb-8">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
+              <p className="mb-3 text-sm text-emerald-800">
+                Faça login para analisar imóveis. Você tem <strong>3 análises gratuitas</strong>.
+              </p>
+              <Link
+                href="/login"
+                className="inline-block rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
+              >
+                Entrar para analisar
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {isSignedIn && usage && usage.remaining === 0 && !isAnalyzing && !result && (
+          <div className="mx-auto max-w-2xl px-6 pb-8">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-center">
+              <p className="text-sm text-amber-800">
+                Você usou todas as suas <strong>{usage.limit} análises gratuitas</strong>. Em breve teremos planos pagos!
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isSignedIn && usage && usage.remaining > 0 && !isAnalyzing && !result && !error && (
+          <div className="mx-auto max-w-2xl px-6 pb-2">
+            <p className="text-center text-xs text-muted-foreground">
+              {usage.remaining} de {usage.limit} análises restantes
+            </p>
+          </div>
+        )}
+
         {error && (
           <div className="mx-auto max-w-2xl px-6 pb-8">
             <div className="rounded-xl border border-red-500/30 bg-red-50 p-4 text-center text-sm text-red-600">

@@ -1,11 +1,13 @@
 import { NextRequest } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { scrapeProperty } from "@/lib/scraper";
 import { analyzeProperty, analyzeFromText } from "@/lib/analyzer";
+import { getDb } from "@/lib/mongodb";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, x-source",
 };
 
 export async function OPTIONS() {
@@ -14,6 +16,29 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return Response.json(
+        { error: "Faça login para analisar imóveis" },
+        { status: 401, headers: CORS_HEADERS }
+      );
+    }
+
+    // Check free tier limit
+    const db = await getDb();
+    const usageCount = await db
+      .collection("analyses")
+      .countDocuments({ userId });
+
+    const FREE_LIMIT = 3;
+    if (usageCount >= FREE_LIMIT) {
+      return Response.json(
+        { error: "Você atingiu o limite de 3 análises gratuitas. Em breve teremos planos pagos!" },
+        { status: 403, headers: CORS_HEADERS }
+      );
+    }
+
     const body = await request.json();
     const { url, text } = body;
 
@@ -88,6 +113,20 @@ export async function POST(request: NextRequest) {
           }
 
           sendStep("Análise concluída!");
+
+          // Save to MongoDB
+          try {
+            const db = await getDb();
+            await db.collection("analyses").insertOne({
+              ...analysis,
+              url: url || null,
+              source: text ? "text" : "url",
+              userId: userId || null,
+              createdAt: new Date(),
+            });
+          } catch (dbErr) {
+            console.error("Failed to save analysis:", dbErr);
+          }
 
           controller.enqueue(
             encoder.encode(

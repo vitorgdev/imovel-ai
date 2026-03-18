@@ -1,5 +1,3 @@
-import { API_URL } from "./constants";
-
 export interface AnalysisResult {
   title: string;
   price: string;
@@ -20,59 +18,49 @@ export interface AnalysisResult {
   cons: string[];
 }
 
+interface AuthCheck {
+  authenticated: boolean;
+  userId?: string;
+  used: number;
+  limit: number;
+  remaining: number;
+}
+
 interface StreamCallbacks {
   onStep: (step: string) => void;
   onResult: (data: AnalysisResult) => void;
   onError: (error: string) => void;
 }
 
-export async function streamAnalysis(
+export async function checkAuth(): Promise<AuthCheck> {
+  return browser.runtime.sendMessage({ action: "checkAuth" });
+}
+
+export async function analyzeViaBackground(
   payload: { text?: string; url?: string },
   callbacks: StreamCallbacks
 ): Promise<void> {
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+  const response = await browser.runtime.sendMessage({
+    action: "analyze",
+    payload,
   });
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ error: "Erro no servidor" }));
-    throw new Error(err.error || `Erro ${response.status}`);
+  if (response.error) {
+    throw new Error(response.error);
   }
 
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n\n");
-    buffer = lines.pop() || "";
-
-    for (const line of lines) {
-      const data = line.replace("data: ", "");
-      if (!data) continue;
-
-      try {
-        const parsed = JSON.parse(data);
-        switch (parsed.type) {
-          case "step":
-            callbacks.onStep(parsed.step);
-            break;
-          case "result":
-            callbacks.onResult(parsed.data);
-            break;
-          case "error":
-            callbacks.onError(parsed.error);
-            break;
-        }
-      } catch (e) {
-        if (!(e instanceof SyntaxError)) throw e;
-      }
+  // Process collected events
+  for (const event of response.events) {
+    switch (event.type) {
+      case "step":
+        callbacks.onStep(event.step);
+        break;
+      case "result":
+        callbacks.onResult(event.data);
+        break;
+      case "error":
+        callbacks.onError(event.error);
+        break;
     }
   }
 }
