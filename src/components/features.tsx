@@ -56,7 +56,7 @@ export function Features() {
         {features.map((feature) => (
           <Card
             key={feature.title}
-            className="group border-border/50 bg-card/50 backdrop-blur transition-all hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5"
+            className="group border-border bg-card shadow-sm transition-all hover:border-emerald-500/30 hover:shadow-md hover:shadow-emerald-500/5"
           >
             <CardContent className="p-6">
               <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500 transition-colors group-hover:bg-emerald-500/20">

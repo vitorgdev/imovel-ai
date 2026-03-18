@@ -1,4 +1,4 @@
-# vale a pena? - Analise imoveis com IA
+# acheilar - Analise imoveis com IA
 
 Cole o link de um anuncio de imovel e descubra se vale a pena. A IA analisa preco, localizacao, potencial de valorizacao e te da um veredito com score de 0 a 100.
 

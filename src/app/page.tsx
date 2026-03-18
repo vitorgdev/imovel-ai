@@ -111,7 +111,7 @@ export default function Home() {
         />
         {error && (
           <div className="mx-auto max-w-2xl px-6 pb-8">
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-center text-sm text-red-400">
+            <div className="rounded-xl border border-red-500/30 bg-red-50 p-4 text-center text-sm text-red-600">
               {error}
             </div>
           </div>

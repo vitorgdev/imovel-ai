@@ -51,7 +51,7 @@ function injectWidget() {
 
     <div class="vap-panel" id="vap-panel">
       <div class="vap-panel-header">
-        <div class="vap-brand">🏠 vale a pena<span>?</span></div>
+        <div class="vap-brand">🏠 achei<span>lar</span></div>
         <button class="vap-close" id="vap-close">&times;</button>
       </div>
       <div class="vap-panel-body" id="vap-body">

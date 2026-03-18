@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Vale a Pena? | Análise de Imóveis com IA",
+  title: "acheilar | Análise de Imóveis com IA",
   description:
     "Cole o link do anúncio e descubra se o imóvel vale a pena. Análise inteligente de preço, localização e potencial de valorização.",
 };
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="dark">
+    <html lang="pt-BR">
       <body className={`${inter.variable} font-sans antialiased`}>
         {children}
       </body>

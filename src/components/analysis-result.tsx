@@ -19,11 +19,11 @@ function ScoreRing({ score, verdict }: { score: number; verdict: string }) {
   const offset = circumference - (score / 100) * circumference;
 
   const colorMap: Record<string, string> = {
-    otimo: "text-emerald-400 stroke-emerald-400",
-    bom: "text-emerald-400 stroke-emerald-400",
-    neutro: "text-yellow-400 stroke-yellow-400",
-    caro: "text-orange-400 stroke-orange-400",
-    muito_caro: "text-red-400 stroke-red-400",
+    otimo: "text-emerald-600 stroke-emerald-500",
+    bom: "text-emerald-600 stroke-emerald-500",
+    neutro: "text-amber-500 stroke-amber-500",
+    caro: "text-orange-500 stroke-orange-500",
+    muito_caro: "text-red-500 stroke-red-500",
   };
 
   const colors = colorMap[verdict] || colorMap.neutro;
@@ -38,7 +38,7 @@ function ScoreRing({ score, verdict }: { score: number; verdict: string }) {
           fill="none"
           stroke="currentColor"
           strokeWidth="8"
-          className="text-border/50"
+          className="text-gray-200"
         />
         <circle
           cx="60"
@@ -75,13 +75,13 @@ function LoadingSkeleton({ steps }: { steps: string[] }) {
           {steps.map((step, i) => (
             <div
               key={`${step}-${i}`}
-              className="flex items-center gap-3 rounded-lg border border-border/50 bg-card/50 px-4 py-3 text-sm animate-in fade-in slide-in-from-bottom-2 duration-300"
+              className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300"
             >
               <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
               {step}
             </div>
           ))}
-          <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-card/50 px-4 py-3 text-sm">
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm shadow-sm">
             <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
             <span className="text-muted-foreground">Aguardando...</span>
           </div>
@@ -93,9 +93,9 @@ function LoadingSkeleton({ steps }: { steps: string[] }) {
 
 function StatusBadge({ status }: { status: "good" | "neutral" | "bad" }) {
   const styles = {
-    good: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
-    neutral: "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
-    bad: "border-red-500/30 bg-red-500/10 text-red-400",
+    good: "border-emerald-500/30 bg-emerald-50 text-emerald-700",
+    neutral: "border-amber-500/30 bg-amber-50 text-amber-700",
+    bad: "border-red-500/30 bg-red-50 text-red-700",
   };
   return styles[status];
 }
@@ -113,17 +113,17 @@ export function AnalysisResult({
   if (!data) return null;
 
   const verdictStyles: Record<string, string> = {
-    otimo: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
-    bom: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
-    neutro: "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
-    caro: "border-orange-500/30 bg-orange-500/10 text-orange-400",
-    muito_caro: "border-red-500/30 bg-red-500/10 text-red-400",
+    otimo: "border-emerald-500/30 bg-emerald-50 text-emerald-700",
+    bom: "border-emerald-500/30 bg-emerald-50 text-emerald-700",
+    neutro: "border-amber-500/30 bg-amber-50 text-amber-700",
+    caro: "border-orange-500/30 bg-orange-50 text-orange-700",
+    muito_caro: "border-red-500/30 bg-red-50 text-red-700",
   };
 
   return (
     <section className="mx-auto max-w-6xl px-6 pb-20">
       {/* Top summary */}
-      <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur">
+      <Card className="overflow-hidden border-border bg-card shadow-sm">
         <CardContent className="p-0">
           <div className="flex flex-col items-center gap-8 p-8 md:flex-row">
             {/* Score */}
@@ -178,7 +178,7 @@ export function AnalysisResult({
         {data.highlights.map((item) => (
           <Card
             key={item.label}
-            className="border-border/50 bg-card/50 backdrop-blur transition-colors hover:border-border"
+            className="border-border bg-card shadow-sm transition-colors hover:border-emerald-500/30"
           >
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground">{item.label}</p>
@@ -195,7 +195,7 @@ export function AnalysisResult({
       {/* Analysis + Pros/Cons */}
       <div className="mt-6 grid gap-6 md:grid-cols-3">
         {/* AI Analysis */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur md:col-span-2">
+        <Card className="border-border bg-card shadow-sm md:col-span-2">
           <CardContent className="p-6">
             <div className="mb-4 flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-emerald-500" />
@@ -206,7 +206,7 @@ export function AnalysisResult({
         </Card>
 
         {/* Pros and Cons */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur">
+        <Card className="border-border bg-card shadow-sm">
           <CardContent className="p-6">
             <div className="space-y-6">
               <div>
