@@ -1,65 +1,127 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Header } from "@/components/header";
+import { HeroSection } from "@/components/hero-section";
+import { AnalysisResult } from "@/components/analysis-result";
+import { Features } from "@/components/features";
+import { Footer } from "@/components/footer";
+
+export interface AnalysisData {
+  title: string;
+  price: string;
+  location: string;
+  area: string;
+  pricePerM2: string;
+  avgPricePerM2: string;
+  verdict: "otimo" | "bom" | "neutro" | "caro" | "muito_caro";
+  verdictLabel: string;
+  score: number;
+  highlights: { label: string; value: string; status: "good" | "neutral" | "bad" }[];
+  analysis: string;
+  pros: string[];
+  cons: string[];
+}
 
 export default function Home() {
+  const [url, setUrl] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [result, setResult] = useState<AnalysisData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [steps, setSteps] = useState<string[]>([]);
+
+  const streamAnalysis = async (body: Record<string, string>) => {
+    setIsAnalyzing(true);
+    setResult(null);
+    setError(null);
+    setSteps([]);
+
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Erro ao analisar");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Sem resposta do servidor");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const data = line.replace("data: ", "");
+          if (!data) continue;
+
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.type === "step") {
+              setSteps((prev) => [...prev, parsed.step]);
+            } else if (parsed.type === "result") {
+              setResult(parsed.data);
+            } else if (parsed.type === "error") {
+              throw new Error(parsed.error);
+            }
+          } catch (e) {
+            if (e instanceof SyntaxError) continue;
+            throw e;
+          }
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleAnalyze = () => {
+    if (!url.trim()) return;
+    streamAnalysis({ url: url.trim() });
+  };
+
+  const handleAnalyzeText = (text: string) => {
+    if (!text.trim()) return;
+    streamAnalysis({ text: text.trim() });
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <HeroSection
+          url={url}
+          setUrl={setUrl}
+          onAnalyze={handleAnalyze}
+          onAnalyzeText={handleAnalyzeText}
+          isAnalyzing={isAnalyzing}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+        {error && (
+          <div className="mx-auto max-w-2xl px-6 pb-8">
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-center text-sm text-red-400">
+              {error}
+            </div>
+          </div>
+        )}
+        {(isAnalyzing || result) && (
+          <AnalysisResult data={result} isLoading={isAnalyzing} steps={steps} />
+        )}
+        {!result && !isAnalyzing && !error && <Features />}
       </main>
+      <Footer />
     </div>
   );
 }
