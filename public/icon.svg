@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- House shape - open bottom with thick strokes -->
+  <path
+    d="M60 12L16 48v8h8v44h72V56h8v-8L60 12z"
+    fill="#0f9d6e"
+  />
+  <!-- Inner cutout to make house outline -->
+  <path
+    d="M32 56v36h56V56L60 32 32 56z"
+    fill="white"
+  />
+  <!-- Checkmark inside -->
+  <path
+    d="M42 68l14 14 22-28"
+    stroke="#0f9d6e"
+    stroke-width="8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+</svg>
